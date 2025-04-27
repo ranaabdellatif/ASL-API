@@ -100,14 +100,26 @@ def upload_file():
     # SAVE immediately
     video.save(video_path)
 
-    # RESPOND immediately (this is key!)
-    response = jsonify({'message': 'Upload successful', 'filename': filename})
-    response.status_code = 200
+    try:
+        # ➡️ Predict directly (synchronously)
+        translation = predict_video(video_path)
 
-    # Then process in background (optional, but this is safest)
-    threading.Thread(target=predict_video, args=(video_path,)).start()
+        # ➡️ Save to MongoDB
+        session_data = {
+            "translation": translation,
+            "timestamp": datetime.utcnow()
+        }
+        sessions_collection.insert_one(session_data)
 
-    return response
+        # ➡️ Cleanup uploaded file
+        os.remove(video_path)
+
+        # ➡️ Return the actual translation back to React frontend!
+        return jsonify({"translation": translation})
+
+    except Exception as e:
+        print(f"❌ Error processing video: {e}")
+        return jsonify({'error': 'Processing failed'}), 500
 
 #func to predict the english letters based on image (vid) reading
 def predict_video(video_path):
