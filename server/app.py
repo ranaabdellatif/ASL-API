@@ -13,8 +13,8 @@ from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
-from Cryptodome.Cipher import AES
-from Cryptodome.Random import get_random_bytes
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -43,7 +43,7 @@ db = client['asl_database']
 sessions_collection = db['sessions']
 
 #load ASL model
-model = tf.keras.models.load_model('mini_model.h5') 
+model = tf.keras.models.load_model('server/mini_model.h5') 
 
 #label map based on kaggle model
 class_names = [
@@ -154,5 +154,7 @@ def get_sessions():
     sessions = list(sessions_collection.find({}, {'_id': 0}))
     return jsonify(sessions)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))  # get PORT from environment or default to 5000
+    app.run(host='0.0.0.0', port=port)
+
