@@ -22,6 +22,7 @@ from tensorflow.keras.preprocessing.image import img_to_array
 
 #initializing app
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') #my secret key
 CORS(app)
 
 #encryption key (securely stored server-side) - AES256
