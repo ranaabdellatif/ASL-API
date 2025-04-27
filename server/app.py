@@ -12,6 +12,7 @@ import mediapipe as mp
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask import Response
 from pymongo import MongoClient
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
@@ -112,7 +113,17 @@ def predict_video(video_path):
 
     return class_names[most_common_class_idx]
 
-
+@app.before_request
+def basic_authentication():
+    if request.method.lower() == 'options':
+        return Response()
+def before_request():
+    headers = {'Access-Control-Allow-Origin': '*',
+               'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+               'Access-Control-Allow-Headers': 'Content-Type'}
+    if request.method.lower() == 'options':
+        return jsonify(headers), 200
+    
 #upload route
 @app.route('/upload', methods=['POST'])
 def upload_file():
