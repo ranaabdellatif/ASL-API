@@ -37,7 +37,7 @@ for folder in [UPLOAD_FOLDER, ENCRYPTED_FOLDER, DECRYPTED_FOLDER]:
     os.makedirs(folder, exist_ok=True)
 
 #connect MongoDB
-client = MongoClient('mongodb+srv://ranran645:8aAUvzPzrz3hzSuJ@cluster0.c15ynzr.mongodb.net/') #my unique string
+client = MongoClient('mongodb+srv://ranran645:8aAUvzPzrz3hzSuJ@cluster0.c15ynzr.mongodb.net/', tls=True, tlsAllowInvalidCertificates=True) #my unique string
 #db initial setup
 db = client['asl_database']
 sessions_collection = db['sessions']
