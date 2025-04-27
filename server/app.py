@@ -43,7 +43,7 @@ db = client['asl_database']
 sessions_collection = db['sessions']
 
 #load ASL model
-model = tf.keras.models.load_model('mini_model.h5') 
+model = tf.keras.models.load_model('server/mini_model.h5') 
 
 #label map based on kaggle model
 class_names = [
