@@ -24,7 +24,7 @@ from tensorflow.keras.preprocessing.image import img_to_array
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') #my secret key
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # (100 MB limit)
-CORS(app)
+CORS(app, origins=["https://asl-react.onrender.com"])
 
 #encryption key (securely stored server-side) - AES256
 encryption_key = get_random_bytes(32) # <- must be 32 bytes
