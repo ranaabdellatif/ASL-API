@@ -10,7 +10,7 @@ import shutil
 import cv2
 import mediapipe as mp
 from datetime import datetime
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from flask import Response
 from pymongo import MongoClient
@@ -113,20 +113,23 @@ def predict_video(video_path):
 
     return class_names[most_common_class_idx]
 
-@app.before_request
-def basic_authentication():
-    if request.method.lower() == 'options':
-        return Response()
-def before_request():
-    headers = {'Access-Control-Allow-Origin': '*',
-               'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-               'Access-Control-Allow-Headers': 'Content-Type'}
-    if request.method.lower() == 'options':
-        return jsonify(headers), 200
-    
-#upload route
-@app.route('/upload', methods=['POST'])
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://asl-react.onrender.com')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
+@app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload_file():
+    if request.method == 'OPTIONS':
+        # Reply to preflight request
+        response = make_response()
+        response.status_code = 200
+        return response
+
+    # Handle actual POST upload
     if 'video' not in request.files:
         return jsonify({'error': 'No video uploaded'}), 400
 
@@ -137,29 +140,28 @@ def upload_file():
 
     video.save(video_path)
 
-    #encrypt vid immediately
+    # Encrypt video immediately
     encrypt_file(video_path, encrypted_path)
     os.remove(video_path)
 
-    #decrypt vid for processing
+    # Decrypt for processing
     decrypted_path = decrypt_file(encrypted_path)
-    
-    #store predition in var
+
+    # Prediction
     translation = predict_video(decrypted_path)
 
-    #save sesh to mongodb
+    # Save session
     session_data = {
         "translation": translation,
         "timestamp": datetime.utcnow()
     }
     sessions_collection.insert_one(session_data)
 
-    #clean up
+    # Clean up
     os.remove(encrypted_path)
     os.remove(decrypted_path)
 
     return jsonify({"translation": translation})
-
 #sessions route
 @app.route('/sessions', methods=['GET'])
 def get_sessions():
