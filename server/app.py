@@ -20,6 +20,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
+import threading
 
 #initializing app
 app = Flask(__name__)
@@ -75,6 +76,39 @@ def decrypt_file(input_path):
         f.write(data)
     return output_path
 
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://asl-react.onrender.com')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
+@app.route('/upload', methods=['POST', 'OPTIONS'])
+def upload_file():
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+
+    if 'video' not in request.files:
+        return jsonify({'error': 'No video uploaded'}), 400
+
+    video = request.files['video']
+    filename = f"{uuid.uuid4().hex}.webm"
+    video_path = os.path.join(UPLOAD_FOLDER, filename)
+
+    # SAVE immediately
+    video.save(video_path)
+
+    # RESPOND immediately (this is key!)
+    response = jsonify({'message': 'Upload successful', 'filename': filename})
+    response.status_code = 200
+
+    # Then process in background (optional, but this is safest)
+    threading.Thread(target=predict_video, args=(video_path,)).start()
+
+    return response
+
 #func to predict the english letters based on image (vid) reading
 def predict_video(video_path):
     cap = cv2.VideoCapture(video_path)
@@ -113,59 +147,6 @@ def predict_video(video_path):
 
     return class_names[most_common_class_idx]
 
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://asl-react.onrender.com')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
-
-@app.route('/upload', methods=['POST', 'OPTIONS'])
-def upload_file():
-    if request.method == 'OPTIONS':
-        # Reply to preflight request
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', 'https://asl-react.onrender.com')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        response.status_code = 200
-        return response
-
-    # Handle actual POST upload
-    if 'video' not in request.files:
-        return jsonify({'error': 'No video uploaded'}), 400
-
-    video = request.files['video']
-    filename = f"{uuid.uuid4().hex}.webm"
-    video_path = os.path.join(UPLOAD_FOLDER, filename)
-    encrypted_path = os.path.join(ENCRYPTED_FOLDER, filename)
-
-    video.save(video_path)
-
-    # Encrypt video immediately
-    encrypt_file(video_path, encrypted_path)
-    os.remove(video_path)
-
-    # Decrypt for processing
-    decrypted_path = decrypt_file(encrypted_path)
-
-    # Prediction
-    translation = predict_video(decrypted_path)
-
-    # Save session
-    session_data = {
-        "translation": translation,
-        "timestamp": datetime.utcnow()
-    }
-    sessions_collection.insert_one(session_data)
-
-    # Clean up
-    os.remove(encrypted_path)
-    os.remove(decrypted_path)
-
-    return jsonify({"translation": translation})
 #sessions route
 @app.route('/sessions', methods=['GET'])
 def get_sessions():
