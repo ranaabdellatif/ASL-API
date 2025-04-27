@@ -126,6 +126,10 @@ def upload_file():
     if request.method == 'OPTIONS':
         # Reply to preflight request
         response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'https://asl-react.onrender.com')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
         response.status_code = 200
         return response
 
