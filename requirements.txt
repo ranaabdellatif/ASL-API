@@ -1,9 +1,9 @@
-flask
+Flask
 flask-cors
 pymongo
 pycryptodome
 opencv-python
 mediapipe
-numpy
 tensorflow
-
+numpy
+gunicorn
