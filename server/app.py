@@ -154,5 +154,5 @@ def get_sessions():
     sessions = list(sessions_collection.find({}, {'_id': 0}))
     return jsonify(sessions)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
