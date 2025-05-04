@@ -6,7 +6,7 @@ from datetime import timedelta
 
 auth_bp = Blueprint('auth', __name__)
 bcrypt = Bcrypt()
-client = MongoClient("your_mongodb_connection_string")
+client = MongoClient('mongodb+srv://ranran645:8aAUvzPzrz3hzSuJ@cluster0.c15ynzr.mongodb.net/')
 db = client["ASLApp"]
 users = db["users"]
 

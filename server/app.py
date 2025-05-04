@@ -23,7 +23,7 @@ from tensorflow.keras.preprocessing.image import img_to_array
 import threading
 from flask_jwt_extended import JWTManager
 from auth import auth_bp
-from config import Config
+from server.config import Config
 
 #initializing app
 app = Flask(__name__)
@@ -95,6 +95,8 @@ def after_request(response):
 @app.route('/')
 def home():
     return "Welcome to Encrypted ASL API"
+
+
 
 @app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload_file():
