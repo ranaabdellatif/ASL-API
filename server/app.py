@@ -21,19 +21,12 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 import threading
-from flask_jwt_extended import JWTManager
-from auth import auth_bp
-from server.config import Config
 
 #initializing app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') #my secret key
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # (100 MB limit)
 CORS(app, origins=["https://asl-react.onrender.com"])
-
-jwt = JWTManager(app)
-# Register blueprint
-app.register_blueprint(auth_bp)
 
 #encryption key (securely stored server-side) - AES256
 encryption_key = get_random_bytes(32) # <- must be 32 bytes
@@ -91,12 +84,6 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
-
-@app.route('/')
-def home():
-    return "Welcome to Encrypted ASL API"
-
-
 
 @app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload_file():
@@ -191,4 +178,3 @@ def get_sessions():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))  # get PORT from environment or default to 5000
     app.run(host='0.0.0.0', port=port)
-
