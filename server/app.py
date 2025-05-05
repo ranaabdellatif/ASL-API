@@ -97,20 +97,20 @@ def upload_file():
     filename = f"{uuid.uuid4().hex}.webm"
     video_path = os.path.join(UPLOAD_FOLDER, filename)
 
-    # SAVE immediately
+    #save immediately
     video.save(video_path)
 
-    # ➡️ FAST RESPONSE FIRST (don't predict yet)
+    #fast response (don't predict yet)
     response = jsonify({'message': 'Upload successful, processing started', 'filename': filename})
     response.status_code = 200
 
-    # ➡️ BACKGROUND processing
+    #background processing
     threading.Thread(target=process_video, args=(video_path,)).start()
 
     return response
 
 
-# ✏️ New function to predict and store result
+#func to predict & store result
 def process_video(video_path):
     try:
         translation = predict_video(video_path)
@@ -126,10 +126,6 @@ def process_video(video_path):
         os.remove(video_path)
     except Exception as e:
         print(f"❌ Error processing video: {e}")
-
-# 🔥 Keep your existing predict_video() exactly like you wrote it
-# NO CHANGE needed in predict_video
-
 
 #func to predict the english letters based on image (vid) reading
 def predict_video(video_path):
@@ -162,7 +158,7 @@ def predict_video(video_path):
     if not predictions:
         return ""
 
-    # Smarter voting: take top 3 most common predictions and pick the one with most confidence
+    #smarter voting: take top 3 most common predictions and pick the one with most confidence
     from collections import Counter
     top_classes = Counter(predictions).most_common(3)
     most_common_class_idx = top_classes[0][0]
